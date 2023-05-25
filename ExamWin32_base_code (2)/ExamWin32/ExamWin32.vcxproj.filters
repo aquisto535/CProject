@@ -50,6 +50,9 @@
     <ClCompile Include="MousePaint2.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="MousePaint3.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ExamWin32.rc">
