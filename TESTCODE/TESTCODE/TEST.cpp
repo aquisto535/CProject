@@ -1,92 +1,45 @@
-#include <windows.h>
+ï»¿#include <windows.h>
+#include <winldap.h>
 #include <iostream>
-#include <string>
 
-void ProcessLine(const std::string& line) {
-    // ¾ÏÈ£È­µÈ ÁÙ Ã³¸® ·ÎÁ÷ Ãß°¡
-    std::cout << "Processing: " << line << std::endl;
-}
+#pragma comment(lib, "wldap32.lib")  // LDAP ë¼ì´ë¸ŒëŸ¬ë¦¬
 
 int main() {
-    LPCWSTR filePath = L"Lorem ipsum dolor sit amet, consect.txt";
+    LDAP* ld;
+    ULONG version = LDAP_VERSION3;
+    ULONG result;
 
-    // 1. ÆÄÀÏ ¿­±â
-    HANDLE hFile = CreateFile(
-        filePath,
-        GENERIC_READ,
-        FILE_SHARE_READ,
-        NULL,
-        OPEN_EXISTING,
-        FILE_ATTRIBUTE_NORMAL,
-        NULL);
-
-    if (hFile == INVALID_HANDLE_VALUE) {
-        std::cerr << "Failed to open file. Error: " << GetLastError() << std::endl;
+    // 1ï¸âƒ£ LDAP ì—°ê²° (í¬íŠ¸ 389 ì‚¬ìš©)
+    ld = ldap_init(L"ldap.mydomain.com", LDAP_PORT);
+    if (ld == NULL) {
+        std::cerr << "Failed to initialize LDAP connection." << std::endl;
         return 1;
     }
 
-    // 2. ÆÄÀÏ ¸ÅÇÎ °´Ã¼ »ı¼º
-    HANDLE hMapping = CreateFileMapping(
-        hFile,
-        NULL,
-        PAGE_READONLY,
-        0,
-        0,
-        NULL);
+    // 2ï¸âƒ£ LDAP ë²„ì „ ì„¤ì •
+    ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
 
-    if (hMapping == NULL) {
-        std::cerr << "Failed to create file mapping. Error: " << GetLastError() << std::endl;
-        CloseHandle(hFile);
+    // 3ï¸âƒ£ STARTTLS ìš”ì²­
+    result = ldap_start_tls_s(ld, NULL, NULL);
+    if (result != LDAP_SUCCESS) {
+        std::cerr << "STARTTLS failed: " << ldap_err2string(result) << std::endl;
+        ldap_unbind(ld);
         return 1;
     }
 
-    // 3. ¸Ş¸ğ¸®¿¡ ¸ÅÇÎ
-    LPVOID pMappedFile = MapViewOfFile(
-        hMapping,
-        FILE_MAP_READ,
-        0,
-        0,
-        0);
+    std::cout << "STARTTLS negotiation successful!" << std::endl;
 
-    if (pMappedFile == NULL) {
-        std::cerr << "Failed to map view of file. Error: " << GetLastError() << std::endl;
-        CloseHandle(hMapping);
-        CloseHandle(hFile);
+    // 4ï¸âƒ£ ì¸ì¦ (Simple Bind ì‚¬ìš© ì˜ˆì‹œ)
+    result = ldap_simple_bind_s(ld, L"CN=User,DC=mydomain,DC=com", L"password123");
+    if (result != LDAP_SUCCESS) {
+        std::cerr << "LDAP bind failed: " << ldap_err2string(result) << std::endl;
+        ldap_unbind(ld);
         return 1;
     }
 
-    // 4. ÆÄÀÏ Å©±â °¡Á®¿À±â
-    LARGE_INTEGER fileSize;
-    if (!GetFileSizeEx(hFile, &fileSize)) {
-        std::cerr << "Failed to get file size. Error: " << GetLastError() << std::endl;
-        UnmapViewOfFile(pMappedFile);
-        CloseHandle(hMapping);
-        CloseHandle(hFile);
-        return 1;
-    }
+    std::cout << "LDAP authentication successful!" << std::endl;
 
-    // 5. µ¥ÀÌÅÍ ÀĞ±â
-    const char* pData = static_cast<const char*>(pMappedFile);
-    std::string fileContent(pData, fileSize.QuadPart);
-
-    // 6. ÇÑ ÁÙ¾¿ Ã³¸®
-    size_t start = 0;
-    size_t end;
-    while ((end = fileContent.find('\n', start)) != std::string::npos) {
-        std::string line = fileContent.substr(start, end - start);
-        ProcessLine(line); // °¢ ÁÙ Ã³¸®
-        start = end + 1;
-    }
-
-    // ¸¶Áö¸· ÁÙ Ã³¸® (EOF°¡ ÁÙ¹Ù²ŞÀ¸·Î ³¡³ªÁö ¾Ê´Â °æ¿ì)
-    if (start < fileContent.size()) {
-        ProcessLine(fileContent.substr(start));
-    }
-
-    // 7. ¸®¼Ò½º ÇØÁ¦
-    UnmapViewOfFile(pMappedFile);
-    CloseHandle(hMapping);
-    CloseHandle(hFile);
-
+    // 5ï¸âƒ£ ì—°ê²° ì¢…ë£Œ
+    ldap_unbind(ld);
     return 0;
 }
