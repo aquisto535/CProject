@@ -2,91 +2,13 @@
 #include <iostream>
 #include <string>
 
-void ProcessLine(const std::string& line) {
-    // ¾ÏÈ£È­µÈ ÁÙ Ã³¸® ·ÎÁ÷ Ãß°¡
-    std::cout << "Processing: " << line << std::endl;
-}
-
 int main() {
-    LPCWSTR filePath = L"Lorem ipsum dolor sit amet, consect.txt";
+   //ANSI í‘œì¤€ í•¨ìˆ˜ì—ì„œ íŒŒì¼ í¬ê¸° íƒìƒ‰ ë°©ì‹
+   FILE * fp = fopen("A.txt", "rb");
 
-    // 1. ÆÄÀÏ ¿­±â
-    HANDLE hFile = CreateFile(
-        filePath,
-        GENERIC_READ,
-        FILE_SHARE_READ,
-        NULL,
-        OPEN_EXISTING,
-        FILE_ATTRIBUTE_NORMAL,
-        NULL);
+   fseek(fp, 0, SEEK_END); //fpíŒŒì¼ í¬ì¸í„°ë¥¼ ëìœ¼ë¡œ ì´ë™ì‹œí‚´
 
-    if (hFile == INVALID_HANDLE_VALUE) {
-        std::cerr << "Failed to open file. Error: " << GetLastError() << std::endl;
-        return 1;
-    }
-
-    // 2. ÆÄÀÏ ¸ÅÇÎ °´Ã¼ »ı¼º
-    HANDLE hMapping = CreateFileMapping(
-        hFile,
-        NULL,
-        PAGE_READONLY,
-        0,
-        0,
-        NULL);
-
-    if (hMapping == NULL) {
-        std::cerr << "Failed to create file mapping. Error: " << GetLastError() << std::endl;
-        CloseHandle(hFile);
-        return 1;
-    }
-
-    // 3. ¸Ş¸ğ¸®¿¡ ¸ÅÇÎ
-    LPVOID pMappedFile = MapViewOfFile(
-        hMapping,
-        FILE_MAP_READ,
-        0,
-        0,
-        0);
-
-    if (pMappedFile == NULL) {
-        std::cerr << "Failed to map view of file. Error: " << GetLastError() << std::endl;
-        CloseHandle(hMapping);
-        CloseHandle(hFile);
-        return 1;
-    }
-
-    // 4. ÆÄÀÏ Å©±â °¡Á®¿À±â
-    LARGE_INTEGER fileSize;
-    if (!GetFileSizeEx(hFile, &fileSize)) {
-        std::cerr << "Failed to get file size. Error: " << GetLastError() << std::endl;
-        UnmapViewOfFile(pMappedFile);
-        CloseHandle(hMapping);
-        CloseHandle(hFile);
-        return 1;
-    }
-
-    // 5. µ¥ÀÌÅÍ ÀĞ±â
-    const char* pData = static_cast<const char*>(pMappedFile);
-    std::string fileContent(pData, fileSize.QuadPart);
-
-    // 6. ÇÑ ÁÙ¾¿ Ã³¸®
-    size_t start = 0;
-    size_t end;
-    while ((end = fileContent.find('\n', start)) != std::string::npos) {
-        std::string line = fileContent.substr(start, end - start);
-        ProcessLine(line); // °¢ ÁÙ Ã³¸®
-        start = end + 1;
-    }
-
-    // ¸¶Áö¸· ÁÙ Ã³¸® (EOF°¡ ÁÙ¹Ù²ŞÀ¸·Î ³¡³ªÁö ¾Ê´Â °æ¿ì)
-    if (start < fileContent.size()) {
-        ProcessLine(fileContent.substr(start));
-    }
-
-    // 7. ¸®¼Ò½º ÇØÁ¦
-    UnmapViewOfFile(pMappedFile);
-    CloseHandle(hMapping);
-    CloseHandle(hFile);
-
-    return 0;
+   DWORD sizeOfFile = ftell(fp); //ftellí•¨ìˆ˜ë¡œ í˜„ì¬ ìœ„ì¹˜ ì •ë³´ ì–»ì–´ì˜´
+    
+   return 0;
 }
