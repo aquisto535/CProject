@@ -1,45 +1,41 @@
 ﻿#include <windows.h>
-#include <winldap.h>
-#include <iostream>
+#include <stdio.h>
+#include <string>
+#include <algorithm>
+#include <strsafe.h>
+#include "RingMemory.h"
 
-#pragma comment(lib, "wldap32.lib")  // LDAP 라이브러리
+using namespace std;
 
-int main() {
-    LDAP* ld;
-    ULONG version = LDAP_VERSION3;
-    ULONG result;
+int main()
+{
+    CRingMemory memory;
+	memory.Create(1 * 1000 * 1000); // 1 MB
 
-    // 1️⃣ LDAP 연결 (포트 389 사용)
-    ld = ldap_init(L"ldap.mydomain.com", LDAP_PORT);
-    if (ld == NULL) {
-        std::cerr << "Failed to initialize LDAP connection." << std::endl;
-        return 1;
+    for (int i = 0; i < 10; i++)
+    {
+        auto* pMemoryToken = memory.Alloc(128); // unsigned char*
+        if (!pMemoryToken) {
+            printf("Alloc failed\n");
+            continue;
+        }
+
+        // 방법 1: 문자열 리터럴을 안전하게 복사 (Visual Studio 안전 함수)
+        const char* msg = "Hello, Ring!";
+        //strcpy_s(reinterpret_cast<char*>(pMemoryToken), 128, msg);
+        StringCbCopyA(reinterpret_cast<char*>(pMemoryToken), 128, msg);
+        printf("Copied (strcpy_s): %s\n", reinterpret_cast<char*>(pMemoryToken));
+
+
+        // 방법 2: std::string -> memcpy (명시적 길이 체크 + 널종료)
+        std::string s = "Another message from std::string";
+        size_t maxCopy = 127; // 128 바이트 중 마지막 1바이트는 '\0' 용
+        size_t copyLen = min(s.size(), maxCopy);
+        memcpy(pMemoryToken, s.c_str(), copyLen);
+        pMemoryToken[copyLen] = 0; // 널종료
+        printf("Copied (memcpy): %s\n", reinterpret_cast<char*>(pMemoryToken));
     }
 
-    // 2️⃣ LDAP 버전 설정
-    ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
-
-    // 3️⃣ STARTTLS 요청
-    result = ldap_start_tls_s(ld, NULL, NULL);
-    if (result != LDAP_SUCCESS) {
-        std::cerr << "STARTTLS failed: " << ldap_err2string(result) << std::endl;
-        ldap_unbind(ld);
-        return 1;
-    }
-
-    std::cout << "STARTTLS negotiation successful!" << std::endl;
-
-    // 4️⃣ 인증 (Simple Bind 사용 예시)
-    result = ldap_simple_bind_s(ld, L"CN=User,DC=mydomain,DC=com", L"password123");
-    if (result != LDAP_SUCCESS) {
-        std::cerr << "LDAP bind failed: " << ldap_err2string(result) << std::endl;
-        ldap_unbind(ld);
-        return 1;
-    }
-
-    std::cout << "LDAP authentication successful!" << std::endl;
-
-    // 5️⃣ 연결 종료
-    ldap_unbind(ld);
+    memory.Destroy();
     return 0;
 }
