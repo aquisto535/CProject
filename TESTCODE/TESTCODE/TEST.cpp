@@ -1,41 +1,28 @@
-﻿#include <windows.h>
-#include <stdio.h>
-#include <string>
-#include <algorithm>
-#include <strsafe.h>
-#include "RingMemory.h"
+﻿#include <iostream>
+#include <future>
+#include <thread>
+#include <chrono>
 
-using namespace std;
+// 예제 1: 기본 사용
+void AsyncTask(std::promise<int> prom) {
+	// 복잡한 계산...
+	std::this_thread::sleep_for(std::chrono::seconds(2));
+	int result = 42;
 
-int main()
-{
-    CRingMemory memory;
-	memory.Create(1 * 1000 * 1000); // 1 MB
+	prom.set_value(result);  // 약속 이행! "값 줄게!"
+}
 
-    for (int i = 0; i < 10; i++)
-    {
-        auto* pMemoryToken = memory.Alloc(128); // unsigned char*
-        if (!pMemoryToken) {
-            printf("Alloc failed\n");
-            continue;
-        }
+int main() {
+	std::promise<int> prom;
+	std::future<int> fut = prom.get_future();  // 영수증 받기
 
-        // 방법 1: 문자열 리터럴을 안전하게 복사 (Visual Studio 안전 함수)
-        const char* msg = "Hello, Ring!";
-        //strcpy_s(reinterpret_cast<char*>(pMemoryToken), 128, msg);
-        StringCbCopyA(reinterpret_cast<char*>(pMemoryToken), 128, msg);
-        printf("Copied (strcpy_s): %s\n", reinterpret_cast<char*>(pMemoryToken));
+	std::thread t(AsyncTask, std::move(prom));  // 작업 시작
 
+	std::cout << "계산 중..." << std::endl;
+	// 여기서 다른 일 할 수 있음!
 
-        // 방법 2: std::string -> memcpy (명시적 길이 체크 + 널종료)
-        std::string s = "Another message from std::string";
-        size_t maxCopy = 127; // 128 바이트 중 마지막 1바이트는 '\0' 용
-        size_t copyLen = min(s.size(), maxCopy);
-        memcpy(pMemoryToken, s.c_str(), copyLen);
-        pMemoryToken[copyLen] = 0; // 널종료
-        printf("Copied (memcpy): %s\n", reinterpret_cast<char*>(pMemoryToken));
-    }
+	int result = fut.get();  // 결과 기다림 (블로킹)
+	std::cout << "결과: " << result << std::endl;  // 42
 
-    memory.Destroy();
-    return 0;
+	t.join();
 }
