@@ -15,7 +15,7 @@ void AsyncTask(std::promise<int> prom) {
 int main() {
 	std::promise<int> prom;
 	std::future<int> fut = prom.get_future();  // 영수증 받기
-
+	
 	std::thread t(AsyncTask, std::move(prom));  // 작업 시작
 
 	std::cout << "계산 중..." << std::endl;
