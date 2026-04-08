@@ -15,7 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Dynamic Array.c">
+    <ClCompile Include="server.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="server_fixed.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

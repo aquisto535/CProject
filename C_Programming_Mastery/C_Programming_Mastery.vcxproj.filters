@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Dynamic Array.c">
+    <ClCompile Include="C_Programming_Mastery.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
