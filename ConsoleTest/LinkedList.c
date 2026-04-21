@@ -18,6 +18,12 @@ void initList(LinkedList* list) {
 // 노드 추가 (마지막에 추가)
 void append(LinkedList* list, int value) {
     Node* newNode = (Node*)malloc(sizeof(Node));
+
+    if (newNode == nullptr)
+    {
+        return;
+    }
+
     newNode->data = value;
     newNode->next = NULL;
 
@@ -36,6 +42,12 @@ void append(LinkedList* list, int value) {
 // 노드 추가 (앞에 추가)
 void prepend(LinkedList* list, int value) {
     Node* newNode = (Node*)malloc(sizeof(Node));
+
+    if (newNode == nullptr)
+    {
+        return;
+    }
+
     newNode->data = value;
     newNode->next = list->head;
     list->head = newNode;
