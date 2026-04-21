@@ -18,5 +18,32 @@
     <ClCompile Include="Dynamic Array.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="LinkedList.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Stack.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Queue.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Deque.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="PriorityQueue_Heap.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="BST.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="AVL_Tree.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="B_Tree.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Graph.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
